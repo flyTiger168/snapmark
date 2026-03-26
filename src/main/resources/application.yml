@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:snapmark.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.sqlite.hibernate.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+server:
+  port: 8080
