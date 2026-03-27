@@ -22,4 +22,5 @@ public interface SnippetRepository extends JpaRepository<Snippet, Long> {
 
     @Query("SELECT s FROM Snippet s WHERE LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Snippet> searchByKeyword(@Param("keyword") String keyword);
+
 }

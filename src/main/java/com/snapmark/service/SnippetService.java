@@ -48,6 +48,34 @@ public class SnippetService {
         return snippetRepository.findByTag(tag);
     }
 
+    public List<Snippet> findByTags(String tags, String logic) {
+        List<String> tagList = Arrays.stream(tags.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
+
+        List<Snippet> allSnippets = findAll();
+
+        return allSnippets.stream()
+                .filter(snippet -> {
+                    // getting the list of all tags of each snippet
+                    List<String> snippetTags = Arrays.stream(snippet.getTags().split(","))
+                            .map(String::trim)
+                            .map(String::toLowerCase)
+                            .collect(Collectors.toList());
+
+                    // checking for snippets with all the tags as in tagList
+                    if ("and".equalsIgnoreCase(logic)) {
+                        return snippetTags.containsAll(tagList);
+                    }
+                    else {
+                        // checking for snippets with any of the tags in taglist
+                        return tagList.stream().anyMatch(snippetTags::contains);
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
     public List<Snippet> findByLanguage(String language) {
         return snippetRepository.findByLanguage(language);
     }

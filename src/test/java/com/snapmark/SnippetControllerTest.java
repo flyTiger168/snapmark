@@ -12,9 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -88,6 +89,60 @@ class SnippetControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].title").value("Java snippet"));
+    }
+
+    @Test void shouldReturnSnippetForOrLogic() throws Exception {
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java snippet");
+        s1.setCode("code");
+        s1.setTags("java,spring");
+        s1.setLanguage("java");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Java code");
+        s2.setCode("code");
+        s2.setTags("java");
+        s2.setLanguage("java");
+        snippetRepository.save(s2);
+
+        Snippet s3 = new Snippet();
+        s3.setTitle("Python code");
+        s3.setCode("code");
+        s3.setTags("python");
+        s3.setLanguage("python");
+        snippetRepository.save(s3);
+
+        mockMvc.perform(get("/api/snippets")
+                        .param("tags", "java,python")
+                        .param("logic", "or")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
+
+    @Test void shouldReturnSnippetForAndLogic() throws Exception {
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java snippet");
+        s1.setCode("code");
+        s1.setTags("java");
+        s1.setLanguage("java");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Spring code");
+        s2.setCode("code");
+        s2.setTags("spring,java");
+        s2.setLanguage("java");
+        snippetRepository.save(s2);
+
+        mockMvc.perform(get("/api/snippets")
+                .param("tags", "java,spring")
+                .param("logic", "and")
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].title").value("Spring code"));
     }
 
     @Test
