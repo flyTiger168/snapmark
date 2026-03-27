@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,8 +65,12 @@ public class SnippetService {
         List<Snippet> snippets = snippetRepository.findAll();
         return snippets.stream()
                 .map(Snippet::getTags)
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(tags -> !tags.isEmpty())
                 .flatMap(tags -> Arrays.stream(tags.split(",")))
                 .map(String::trim)
+                .filter(tag -> !tag.isEmpty())
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
