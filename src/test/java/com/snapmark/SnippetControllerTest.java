@@ -100,4 +100,112 @@ class SnippetControllerTest {
         mockMvc.perform(delete("/api/snippets/" + s.getId()))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void shouldFilterByMultipleTagsWithOrLogic() throws Exception {
+        // Given: snippets with different tag combinations
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java Spring Snippet");
+        s1.setCode("code1");
+        s1.setTags("java,spring");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Python Django Snippet");
+        s2.setCode("code2");
+        s2.setTags("python,django");
+        snippetRepository.save(s2);
+
+        Snippet s3 = new Snippet();
+        s3.setTitle("Java Only Snippet");
+        s3.setCode("code3");
+        s3.setTags("java");
+        snippetRepository.save(s3);
+
+        // When: filtering by tags with OR logic (default)
+        // Then: should return snippets that have EITHER "spring" OR "python" tags
+        mockMvc.perform(get("/api/snippets").param("tags", "spring,python"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[*].title", containsInAnyOrder(
+                        "Java Spring Snippet",
+                        "Python Django Snippet"
+                )));
+    }
+
+    @Test
+    void shouldFilterByMultipleTagsWithAndLogic() throws Exception {
+        // Given: snippets with different tag combinations
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java Spring Snippet");
+        s1.setCode("code1");
+        s1.setTags("java,spring");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Java Only Snippet");
+        s2.setCode("code2");
+        s2.setTags("java");
+        snippetRepository.save(s2);
+
+        Snippet s3 = new Snippet();
+        s3.setTitle("Spring Only Snippet");
+        s3.setCode("code3");
+        s3.setTags("spring");
+        snippetRepository.save(s3);
+
+        // When: filtering by tags with AND logic
+        // Then: should return only snippets that have BOTH "java" AND "spring" tags
+        mockMvc.perform(get("/api/snippets")
+                        .param("tags", "java,spring")
+                        .param("logic", "and"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Java Spring Snippet"));
+    }
+
+    @Test
+    void shouldDefaultToOrLogicWhenNotSpecified() throws Exception {
+        // Given: snippets with different tags
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java Snippet");
+        s1.setCode("code1");
+        s1.setTags("java");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Python Snippet");
+        s2.setCode("code2");
+        s2.setTags("python");
+        snippetRepository.save(s2);
+
+        // When: filtering by multiple tags without specifying logic
+        // Then: should default to OR logic
+        mockMvc.perform(get("/api/snippets").param("tags", "java,python"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void shouldMaintainBackwardCompatibilityWithSingleTag() throws Exception {
+        // Given: existing single-tag filtering should still work
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java Snippet");
+        s1.setCode("code1");
+        s1.setTags("java,spring");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Python Snippet");
+        s2.setCode("code2");
+        s2.setTags("python");
+        snippetRepository.save(s2);
+
+        // When: using the old single 'tag' parameter
+        // Then: should still work as before
+        mockMvc.perform(get("/api/snippets").param("tag", "java"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Java Snippet"));
+    }
 }
