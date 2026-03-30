@@ -20,8 +20,13 @@ public class SnippetController {
 
     @GetMapping
     public List<Snippet> list(@RequestParam(required = false) String tag,
+                              @RequestParam(required = false) String tags,
                               @RequestParam(required = false) String language,
-                              @RequestParam(required = false) String keyword) {
+                              @RequestParam(required = false) String keyword,
+                              @RequestParam(defaultValue = "or") String logic) {
+        if (tags != null && !tags.isBlank()) {
+            return snippetService.findByTags(tags, logic);
+        }
         if (tag != null) {
             return snippetService.findByTag(tag);
         }
