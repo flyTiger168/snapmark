@@ -48,6 +48,46 @@ public class SnippetService {
         return snippetRepository.findByTag(tag);
     }
 
+    /**
+     * Find snippets by multiple tags with configurable AND/OR logic.
+     * @param tags list of tags to filter by
+     * @param logic "and" or "or" - determines whether all tags must match or any tag matches
+     * @return list of matching snippets
+     */
+    public List<Snippet> findByTags(List<String> tags, String logic) {
+        if (tags == null || tags.isEmpty()) {
+            return findAll();
+        }
+        
+        // Get all snippets and filter in memory for flexibility
+        List<Snippet> allSnippets = findAll();
+        
+        return allSnippets.stream()
+            .filter(snippet -> {
+                String snippetTags = snippet.getTags();
+                if (snippetTags == null || snippetTags.trim().isEmpty()) {
+                    return false;
+                }
+                
+                List<String> snippetTagList = Arrays.stream(snippetTags.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toList());
+                
+                if ("and".equalsIgnoreCase(logic)) {
+                    // AND logic: snippet must have ALL specified tags
+                    return tags.stream().allMatch(tag -> 
+                        snippetTagList.stream().anyMatch(st -> st.contains(tag))
+                    );
+                } else {
+                    // OR logic (default): snippet must have AT LEAST ONE of the specified tags
+                    return tags.stream().anyMatch(tag -> 
+                        snippetTagList.stream().anyMatch(st -> st.contains(tag))
+                    );
+                }
+            })
+            .collect(Collectors.toList());
+    }
+
     public List<Snippet> findByLanguage(String language) {
         return snippetRepository.findByLanguage(language);
     }
