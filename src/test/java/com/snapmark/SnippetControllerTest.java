@@ -91,6 +91,108 @@ class SnippetControllerTest {
     }
 
     @Test
+    void shouldReturnSnippetForOrLogic() throws Exception {
+        // 准备测试数据
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java snippet");
+        s1.setCode("code");
+        s1.setTags("java,spring");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Java code");
+        s2.setCode("code");
+        s2.setTags("java");
+        snippetRepository.save(s2);
+
+        Snippet s3 = new Snippet();
+        s3.setTitle("Python code");
+        s3.setCode("code");
+        s3.setTags("python");
+        snippetRepository.save(s3);
+
+        // 测试 OR 逻辑：tags=java,python 应该返回 3 个结果
+        mockMvc.perform(get("/api/snippets")
+                        .param("tags", "java,python")
+                        .param("logic", "or"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
+
+    @Test
+    void shouldReturnSnippetForAndLogic() throws Exception {
+        // 准备测试数据
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java snippet");
+        s1.setCode("code");
+        s1.setTags("java");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Spring code");
+        s2.setCode("code");
+        s2.setTags("spring,java");
+        snippetRepository.save(s2);
+
+        Snippet s3 = new Snippet();
+        s3.setTitle("Other");
+        s3.setCode("code");
+        s3.setTags("python");
+        snippetRepository.save(s3);
+
+        // 测试 AND 逻辑：tags=java,spring 应该只返回 1 个结果
+        mockMvc.perform(get("/api/snippets")
+                .param("tags", "java,spring")
+                .param("logic", "and"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Spring code"));
+    }
+
+    @Test
+    void shouldDefaultToOrLogic() throws Exception {
+        // 测试默认逻辑（不指定 logic 参数时默认为 OR）
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java only");
+        s1.setCode("code");
+        s1.setTags("java");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Python only");
+        s2.setCode("code");
+        s2.setTags("python");
+        snippetRepository.save(s2);
+
+        mockMvc.perform(get("/api/snippets")
+                .param("tags", "java,python"))
+                // 不指定 logic 参数，应该默认为 OR
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void shouldMaintainBackwardCompatibility() throws Exception {
+        // 测试原有的单 tag 参数仍然有效
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java snippet");
+        s1.setCode("code");
+        s1.setTags("java,spring");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Python snippet");
+        s2.setCode("code");
+        s2.setTags("python");
+        snippetRepository.save(s2);
+
+        mockMvc.perform(get("/api/snippets").param("tag", "java"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Java snippet"));
+    }
+
+    @Test
     void shouldDeleteSnippet() throws Exception {
         Snippet s = new Snippet();
         s.setTitle("To delete");

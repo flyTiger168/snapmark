@@ -20,8 +20,16 @@ public class SnippetController {
 
     @GetMapping
     public List<Snippet> list(@RequestParam(required = false) String tag,
+                              @RequestParam(required = false) String tags,
                               @RequestParam(required = false) String language,
-                              @RequestParam(required = false) String keyword) {
+                              @RequestParam(required = false) String keyword,
+                              @RequestParam(defaultValue = "or") String logic) {
+        // 优先处理多标签查询
+        if (tags != null && !tags.isBlank()) {
+            return snippetService.findByTags(tags, logic);
+        }
+        
+        // 保持原有单标签逻辑
         if (tag != null) {
             return snippetService.findByTag(tag);
         }

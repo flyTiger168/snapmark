@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapMark API</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { color: #667eea; margin-bottom: 10px; font-size: 2.5em; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 1.1em; }
+        .api-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .api-section h2 {
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .endpoint {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-right: 10px;
+        }
+        .get { background: #61affe; color: white; }
+        .post { background: #49cc90; color: white; }
+        .put { background: #fca130; color: white; }
+        .delete { background: #f93e3e; color: white; }
+        .path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: #333;
+            font-size: 0.95em;
+        }
+        .desc { color: #666; margin-top: 8px; font-size: 0.9em; }
+        .example {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+        }
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            margin-left: 10px;
+        }
+        .new-feature { background: #49cc90; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ SnapMark API</h1>
+        <p class="subtitle">代码片段管理系统 - 多标签过滤功能已上线</p>
+        
+        <div class="api-section">
+            <h2>🏷️ 多标签过滤 (新功能)</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/snippets?tags=java,spring&logic=or</span>
+                <span class="badge new-feature">NEW</span>
+                <p class="desc">使用 OR 逻辑过滤：返回包含 java 或 spring 标签的片段</p>
+                <div class="example">curl "http://localhost:8080/api/snippets?tags=java,spring&logic=or"</div>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/snippets?tags=java,spring&logic=and</span>
+                <span class="badge new-feature">NEW</span>
+                <p class="desc">使用 AND 逻辑过滤：返回同时包含 java 和 spring 标签的片段</p>
+                <div class="example">curl "http://localhost:8080/api/snippets?tags=java,spring&logic=and"</div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2>📋 基础端点</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/snippets</span>
+                <p class="desc">获取所有代码片段</p>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/snippets?tag=java</span>
+                <p class="desc">按单个标签过滤（向后兼容）</p>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/snippets?language=java</span>
+                <p class="desc">按编程语言过滤</p>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/snippets?keyword=repository</span>
+                <p class="desc">按关键词搜索（标题/描述）</p>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/snippets/{id}</span>
+                <p class="desc">获取单个片段详情</p>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/snippets/tags</span>
+                <p class="desc">获取所有可用标签列表</p>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2>✍️ 操作端点</h2>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/snippets</span>
+                <p class="desc">创建新的代码片段</p>
+                <div class="example">curl -X POST http://localhost:8080/api/snippets \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My Snippet","code":"System.out.println();","language":"java","tags":"java,example"}'</div>
+            </div>
+            <div class="endpoint">
+                <span class="method put">PUT</span>
+                <span class="path">/api/snippets/{id}</span>
+                <p class="desc">更新现有片段</p>
+            </div>
+            <div class="endpoint">
+                <span class="method delete">DELETE</span>
+                <span class="path">/api/snippets/{id}</span>
+                <p class="desc">删除片段</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; color: #999; font-size: 0.9em;">
+            <p>🎉 Issue #1 已修复 - 多标签过滤功能支持 AND/OR 逻辑</p>
+        </div>
+    </div>
+</body>
+</html>
