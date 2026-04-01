@@ -20,8 +20,16 @@ public class SnippetController {
 
     @GetMapping
     public List<Snippet> list(@RequestParam(required = false) String tag,
+                              @RequestParam(required = false) String tags,
+                              @RequestParam(required = false) String logic,
                               @RequestParam(required = false) String language,
                               @RequestParam(required = false) String keyword) {
+        // Multi-tag filtering takes precedence
+        if (tags != null && !tags.isEmpty()) {
+            boolean useAndLogic = "and".equalsIgnoreCase(logic);
+            return snippetService.findByMultipleTags(tags, useAndLogic);
+        }
+        // Backward compatibility: single tag filter
         if (tag != null) {
             return snippetService.findByTag(tag);
         }
