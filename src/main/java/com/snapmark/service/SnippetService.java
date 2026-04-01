@@ -58,16 +58,42 @@ public class SnippetService {
 
     /**
      * Get all tags from all snippets as a parsed list.
-     * BUG: does not handle null/empty tags — will throw NullPointerException
+     * Handles null/empty tags gracefully.
      */
     public List<String> getAllTags() {
         List<Snippet> snippets = snippetRepository.findAll();
         return snippets.stream()
                 .map(Snippet::getTags)
+                .filter(tags -> tags != null && !tags.isEmpty())
                 .flatMap(tags -> Arrays.stream(tags.split(",")))
                 .map(String::trim)
+                .filter(tag -> !tag.isEmpty())
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Find snippets by multiple tags with configurable AND/OR logic.
+     * @param tagsParam comma-separated list of tags
+     * @param logic "and" or "or" (defaults to "or" if not specified)
+     * @return list of matching snippets
+     */
+    public List<Snippet> findByMultipleTags(String tagsParam, String logic) {
+        if (tagsParam == null || tagsParam.trim().isEmpty()) {
+            return findAll();
+        }
+
+        List<String> tags = Arrays.stream(tagsParam.split(","))
+                .map(String::trim)
+                .filter(tag -> !tag.isEmpty())
+                .collect(Collectors.toList());
+
+        if (tags.isEmpty()) {
+            return findAll();
+        }
+
+        boolean useAnd = "and".equalsIgnoreCase(logic);
+        return snippetRepository.findByMultipleTags(tags, useAnd);
     }
 }

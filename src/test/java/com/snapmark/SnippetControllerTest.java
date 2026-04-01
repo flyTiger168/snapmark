@@ -100,4 +100,103 @@ class SnippetControllerTest {
         mockMvc.perform(delete("/api/snippets/" + s.getId()))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void shouldFilterByMultipleTagsWithOrLogic() throws Exception {
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java only");
+        s1.setCode("code1");
+        s1.setTags("java");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Python only");
+        s2.setCode("code2");
+        s2.setTags("python");
+        snippetRepository.save(s2);
+
+        Snippet s3 = new Snippet();
+        s3.setTitle("Java and Spring");
+        s3.setCode("code3");
+        s3.setTags("java,spring");
+        snippetRepository.save(s3);
+
+        // OR logic: should return snippets with java OR python (s1, s2, s3)
+        mockMvc.perform(get("/api/snippets")
+                        .param("tags", "java,python")
+                        .param("logic", "or"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
+
+    @Test
+    void shouldFilterByMultipleTagsWithAndLogic() throws Exception {
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java only");
+        s1.setCode("code1");
+        s1.setTags("java");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Spring only");
+        s2.setCode("code2");
+        s2.setTags("spring");
+        snippetRepository.save(s2);
+
+        Snippet s3 = new Snippet();
+        s3.setTitle("Java and Spring");
+        s3.setCode("code3");
+        s3.setTags("java,spring");
+        snippetRepository.save(s3);
+
+        // AND logic: should return only snippets with BOTH java AND spring (s3)
+        mockMvc.perform(get("/api/snippets")
+                        .param("tags", "java,spring")
+                        .param("logic", "and"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Java and Spring"));
+    }
+
+    @Test
+    void shouldDefaultToOrLogicWhenLogicNotSpecified() throws Exception {
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java only");
+        s1.setCode("code1");
+        s1.setTags("java");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Python only");
+        s2.setCode("code2");
+        s2.setTags("python");
+        snippetRepository.save(s2);
+
+        // No logic parameter - should default to OR
+        mockMvc.perform(get("/api/snippets")
+                        .param("tags", "java,python"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void shouldMaintainBackwardCompatibilityWithSingleTag() throws Exception {
+        Snippet s1 = new Snippet();
+        s1.setTitle("Java snippet");
+        s1.setCode("code");
+        s1.setTags("java,spring");
+        snippetRepository.save(s1);
+
+        Snippet s2 = new Snippet();
+        s2.setTitle("Python snippet");
+        s2.setCode("code");
+        s2.setTags("python");
+        snippetRepository.save(s2);
+
+        // Old single tag parameter should still work
+        mockMvc.perform(get("/api/snippets").param("tag", "java"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Java snippet"));
+    }
 }
