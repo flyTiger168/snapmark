@@ -64,6 +64,7 @@ public class SnippetService {
         List<Snippet> snippets = snippetRepository.findAll();
         return snippets.stream()
                 .map(Snippet::getTags)
+                .filter(tags -> tags != null && !tags.isBlank())
                 .flatMap(tags -> Arrays.stream(tags.split(",")))
                 .map(String::trim)
                 .distinct()
